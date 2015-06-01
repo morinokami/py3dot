@@ -20,6 +20,7 @@ edge [{edge_attr}];
 
 
 class Graph:
+    ''''''
 
     def __init__(self, attr={}):
         self.nodes = []
@@ -29,7 +30,7 @@ class Graph:
         self.edge_attr = {}
 
     def __setitem__(self, key, value):
-        self.attr[key] = value
+        set_attr_helper({key: value}, self.attr, 'graph')
 
     def __getitem__(self, key):
         return self.attr[key]
@@ -194,7 +195,7 @@ class Node:
         return self.name == other.name
 
     def __setitem__(self, key, value):
-        self.attr[key] = value
+        set_attr_helper({key: value}, self.attr, 'node')
 
     def __getitem__(self, key):
         return self.attr[key]
@@ -214,7 +215,6 @@ class Edge:
         self.tail = tail
         self.head = head
         self.attr = set_attr_helper(attr, {}, 'edge')
-        self.attr = attr
 
     def __str__(self):
         return self.tail + ' -> ' + self.head
@@ -223,7 +223,8 @@ class Edge:
         return self.tail == other.tail and self.head == other.head
 
     def __setitem__(self, key, value):
-        self.attr[key] = value
+        set_attr_helper({key: value}, self.attr, 'edge')
+        # self.attr[key] = value
 
     def __getitem__(self, key):
         return self.attr[key]
