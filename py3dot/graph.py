@@ -151,7 +151,7 @@ class Graph:
                 if attr_name in attr and attr[attr_name] is not None:
                     if ATTR[attr_name]['is_string']:
                         attr_str.append(attr_name + '="' +
-                                         str(attr[attr_name]) + '"')
+                                        str(attr[attr_name]) + '"')
                     else:
                         attr_str.append(attr_name + '=' + str(attr[attr_name]))
             return ','.join(attr_str)
@@ -171,12 +171,14 @@ class Graph:
             rel += '"' + tail + '" -> "' + head + '" [' + attr_str + '];\n'
 
         return DOT_TEMPLATE.format(graph_attr=graph_attr, node_attr=node_attr,
-                               edge_attr=edge_attr, attr_for_each_node=attr_for_each_node[:-1],
-                               rel=rel[:-1])
+                                   edge_attr=edge_attr,
+                                   attr_for_each_node=attr_for_each_node[:-1],
+                                   rel=rel[:-1])
 
     def save_fig(self, path):
         dot = self.create_dot().encode()
-        p = subprocess.Popen(['dot', '-T', 'png', '-o', path], stdin=subprocess.PIPE)
+        p = subprocess.Popen(['dot', '-T', 'png', '-o', path],
+                             stdin=subprocess.PIPE)
         p.stdin.write(dot)
         output = p.communicate()[0]
         p.stdin.close()
@@ -224,7 +226,6 @@ class Edge:
 
     def __setitem__(self, key, value):
         set_attr_helper({key: value}, self.attr, 'edge')
-        # self.attr[key] = value
 
     def __getitem__(self, key):
         return self.attr[key]
@@ -264,7 +265,6 @@ def set_attr_helper(attr, target, kind):
 
 
 if __name__ == '__main__':
-
     graph = Graph({'size': '3.6, 6.9', 'label': 'Graph', 'labelloc': 't', 'fontsize': 10})
     graph.add_nodes_from(['A', 'B', 'C', 'D'])
     graph.add_edge('A', 'B', {'arrowhead':'dot'})
