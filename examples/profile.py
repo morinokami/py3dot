@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from py3dot import Graph
+
 prof = Graph({'size': '6, 4', 'ration': 'fill'})
 prof.set_node_attr({'style': 'filled'})
 

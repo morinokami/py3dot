@@ -2,6 +2,8 @@
 
 # Example from http://www.graphviz.org/content/fsm
 
+from py3dot import Graph
+
 fsm = Graph({'rankdir': 'LR', 'size': '8, 5'})
 fsm.set_node_attr({'shape': 'circle'})
 fsm.add_nodes_from(['LR_' + str(i) for i in range(9)])

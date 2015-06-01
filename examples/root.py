@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # doesnt work
 
+from py3dot import Graph
+
 root = Graph({'ranksep': 3, 'root': '189E'})
 
 root.add_node('1', {'label': '02f5daf56e299b8a8ecea892', 'shape': 'hexagon', 'style': 'filled', 'color': 'green'})

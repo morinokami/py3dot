@@ -3,6 +3,7 @@
 
 """Python 3 interface for Graphviz"""
 
+from itertools import combinations
 import subprocess
 from attributes import ATTR, GRAPH_ATTR, NODE_ATTR, EDGE_ATTR
 
@@ -16,6 +17,8 @@ edge [{edge_attr}];
 {attr_for_each_node}
 
 {rel}
+
+{rank}
 }}'''
 
 
@@ -28,6 +31,7 @@ class Graph:
         self.attr = set_attr_helper(attr, {}, 'graph')
         self.node_attr = {}
         self.edge_attr = {}
+        self.same_rank = []
 
     def __setitem__(self, key, value):
         set_attr_helper({key: value}, self.attr, 'graph')
@@ -62,8 +66,10 @@ class Graph:
         node = Node(node_name, attr)
         if node not in self.nodes:
             self.nodes.append(node)
+        else:
+            pass  # raise already exists error
 
-    def add_nodes_from(self, nodes_list):
+    def add_nodes_from(self, nodes_list, same_rank=False):
         '''Add nodes to the graph.
 
         Args:
@@ -71,6 +77,15 @@ class Graph:
         '''
         for node_name in nodes_list:
             self.add_node(node_name)
+        if same_rank:
+            self.rank_same(nodes_list)
+
+    def rank_same(self, nodes_list):
+        for node in nodes_list:
+            for group in self.same_rank:
+                if node in group:
+                    raise ValueError
+        self.same_rank.append(nodes_list)
 
     def add_edge(self, tail, head, attr={}):
         '''Add an edge to the graph.
@@ -169,11 +184,14 @@ class Graph:
             head = edge.get_head()
             attr_str = get_attr_str(edge.get_attr(), EDGE_ATTR)
             rel += '"' + tail + '" -> "' + head + '" [' + attr_str + '];\n'
+        rank = ''
+        for group in self.same_rank:
+            rank += '{rank=same; ' + '; '.join(group) + '}\n'
 
         return DOT_TEMPLATE.format(graph_attr=graph_attr, node_attr=node_attr,
                                    edge_attr=edge_attr,
                                    attr_for_each_node=attr_for_each_node[:-1],
-                                   rel=rel[:-1])
+                                   rel=rel[:-1], rank=rank[:-1])
 
     def save_fig(self, path):
         dot = self.create_dot().encode()
@@ -265,6 +283,18 @@ def set_attr_helper(attr, target, kind):
 
 
 if __name__ == '__main__':
+    g = Graph({'rankdir': 'BT'})
+    g.set_node_attr({'shape': 'circle'})
+    g.add_edges_from([('c1', 'c1'), ('c2', 'c2'), ('v1', 'v4'), ('v4', 'v2'), ('v2', 'c1'), ('v3', 'c2'), ('v5', 'c2')])
+    c1 = g.get_node('c1')
+    c2 = g.get_node('c2')
+    c1.set_attr({'shape': 'doublecircle'})
+    c2.set_attr({'shape': 'doublecircle'})
+    g.rank_same(['c1', 'c2'])
+    g.rank_same(['a', 'c1'])
+    g.save_fig('test.png')
+
+    '''
     graph = Graph({'size': '3.6, 6.9', 'label': 'Graph', 'labelloc': 't', 'fontsize': 10})
     graph.add_nodes_from(['A', 'B', 'C', 'D'])
     graph.add_edge('A', 'B', {'arrowhead':'dot'})
@@ -273,3 +303,4 @@ if __name__ == '__main__':
     graph.add_edge('B', 'D')
     print(graph.create_dot())
     #graph.save_fig('sample2.svg')
+    '''

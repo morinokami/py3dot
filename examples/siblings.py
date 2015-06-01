@@ -2,6 +2,8 @@
 
 # Example from http://www.graphviz.org/content/siblings
 
+from py3dot import Graph
+
 siblings = Graph({'size': '36, 36', 'fontname': 'Arial', 'fontsize': 36, 'style': 'bold',
     'label': '\nKappa Kappa Psi/Tau Beta Sigma\nSan Diego State University\nEta Mu and Zeta Xi Family Tree\n\nto date: November 30th, 2008\n',
     'ssize': '30, 60'})

@@ -2,6 +2,8 @@
 
 # Example from http://www.graphviz.org/content/unix
 
+from py3dot import Graph
+
 unix = Graph({'size': '6, 6'})
 unix.set_node_attr({'color': 'lightblue2', 'style': 'filled'})
 
