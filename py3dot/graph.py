@@ -45,10 +45,11 @@ class Graph:
 
     def print_nodes(self):
         '''Print nodes.'''
-        #for n in self.nodes
+        print([str(n) for n in self.nodes])
 
     def print_edges(self):
         '''Print edges.'''
+        print([str(e) for e in self.edges])
 
     def add_node(self, node_name, attr={}):
         '''Add a node to the graph.
@@ -255,5 +256,6 @@ if __name__ == '__main__':
     graph.add_edge('A', 'C', {'arrowtail': 'odot'})
     graph.add_edge('A', 'D', {'headlabel': 'end', 'taillabel': 'start', 'labeldistance': 3, 'labelangle': 30})
     graph.add_edge('B', 'D')
-    print(graph.create_dot())
-    graph.save_fig('sample2.svg')
+    #print(graph.create_dot())
+    #graph.save_fig('sample2.svg')
+    graph.print_edges()
