@@ -16,8 +16,7 @@ edge [{edge_attr}];
 {attr_for_each_node}
 
 {rel}
-}}
-'''
+}}'''
 
 
 class Graph:
@@ -36,11 +35,11 @@ class Graph:
         return self.attr[key]
 
     def num_nodes(self):
-        '''Returns the number of nodes in the graph.'''
+        '''Return the number of nodes in the graph.'''
         return len(self.nodes)
 
     def num_edges(self):
-        '''Returns the number of edges in the graph.'''
+        '''Return the number of edges in the graph.'''
         return len(self.edges)
 
     def print_nodes(self):
@@ -56,7 +55,7 @@ class Graph:
 
         Args:
             node_name: A node's name.
-            attr:
+            attr: A dictionary of attributes for the node.
         '''
 
         node = Node(node_name, attr)
@@ -78,7 +77,7 @@ class Graph:
         Args:
             tail: A tail node's name.
             head: A head node's name.
-            attr:
+            attr: A dictionary of attributes for the edge.
         '''
         self.add_node(tail)
         self.add_node(head)
@@ -86,7 +85,7 @@ class Graph:
         if edge not in self.edges:
             self.edges.append(edge)
         else:
-            pass  # raise
+            pass  # raise already exists error
 
     def add_edges_from(self, edges_list):
         '''Add edges to the graph.
@@ -99,21 +98,21 @@ class Graph:
             self.add_edge(tail, head)
 
     def get_node(self, node_name):
-        '''Returns a node specified by the argument.'''
+        '''Return a node specified by the argument.'''
         for node in self.nodes:
             if str(node) == node_name:
                 return node
         raise KeyError
 
     def get_edge(self, tail, head):
-        '''Returns an edge specified by the argument.'''
+        '''Return an edge specified by the argument.'''
         for edge in self.edges:
             if edge.get_tail() == tail and edge.get_head() == head:
                 return edge
         raise KeyError
 
     def set_attr(self, attr):
-        '''Set multiple attributes at a time.'''
+        '''Set multiple attributes of the graph at a time.'''
         set_attr_helper(attr, self.attr, 'graph')
 
     def set_node_attr(self, attr):
@@ -121,6 +120,7 @@ class Graph:
         set_attr_helper(attr, self.node_attr, 'node')
 
     def set_attr_for_nodes(self, nodes, attr):
+        '''Set multiple attribues of some nodes at a time.'''
         for node_name in nodes:
             node = self.get_node(node_name)
             node.set_attr(attr)
@@ -128,6 +128,18 @@ class Graph:
     def set_edge_attr(self, attr):
         '''Set multiple attributes of edges at a time.'''
         set_attr_helper(attr, self.edge_attr, 'edge')
+
+    def get_attr(self):
+        '''Return attributes of the graph.'''
+        return self.attr
+
+    def get_node_attr(self):
+        '''Return attributes of nodes.'''
+        return self.node_attr
+
+    def get_edge_attr(self):
+        '''Return attributes of edges.'''
+        return self.edge_attr
 
     def create_dot(self):
         '''Create a dot file.'''
@@ -163,7 +175,7 @@ class Graph:
 
     def save_fig(self, path):
         dot = self.create_dot().encode()
-        p = subprocess.Popen(['dot', '-T', 'svg', '-o', path], stdin=subprocess.PIPE)
+        p = subprocess.Popen(['dot', '-T', 'png', '-o', path], stdin=subprocess.PIPE)
         p.stdin.write(dot)
         output = p.communicate()[0]
         p.stdin.close()
@@ -192,7 +204,7 @@ class Node:
         set_attr_helper(attr, self.attr, 'node')
 
     def get_attr(self):
-        '''Return all'''
+        '''Return attributes of the node.'''
         return self.attr
 
 
@@ -221,12 +233,15 @@ class Edge:
         set_attr_helper(attr, self.attr, 'edge')
 
     def get_attr(self):
+        '''Return attributes of the edge.'''
         return self.attr
 
     def get_tail(self):
+        '''Return the tail node of the edge as a string.'''
         return self.tail
 
     def get_head(self):
+        '''Return the head node of the edge as a string.'''
         return self.head
 
 
@@ -237,13 +252,12 @@ def set_attr_helper(attr, target, kind):
         ref = NODE_ATTR
     elif kind == 'edge':
         ref = EDGE_ATTR
-    else:
-        raise  # raise
+
     for attr_name in attr:
         if attr_name in ref:
             target[attr_name] = attr[attr_name]
         else:
-            pass  # raise
+            raise AttributeError
 
     return target
 
@@ -256,6 +270,5 @@ if __name__ == '__main__':
     graph.add_edge('A', 'C', {'arrowtail': 'odot'})
     graph.add_edge('A', 'D', {'headlabel': 'end', 'taillabel': 'start', 'labeldistance': 3, 'labelangle': 30})
     graph.add_edge('B', 'D')
-    #print(graph.create_dot())
+    print(graph.create_dot())
     #graph.save_fig('sample2.svg')
-    graph.print_edges()
