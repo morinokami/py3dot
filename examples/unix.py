@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# Example from http://www.graphviz.org/content/unix
+
 unix = Graph({'size': '6, 6'})
 unix.set_node_attr({'color': 'lightblue2', 'style': 'filled'})
 

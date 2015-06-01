@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
+# Example from http://www.graphviz.org/content/fsm
+
 fsm = Graph({'rankdir': 'LR', 'size': '8, 5'})
 fsm.set_node_attr({'shape': 'circle'})
 fsm.add_nodes_from(['LR_' + str(i) for i in range(9)])
-fsm.set_attr_for_each_node(['LR_0', 'LR_3', 'LR_4', 'LR_8'], {'shape': 'doublecircle'})
+fsm.set_attr_for_nodes(['LR_0', 'LR_3', 'LR_4', 'LR_8'], {'shape': 'doublecircle'})
 
 fsm.add_edge('LR_0', 'LR_2', {'label': 'SS(B)'})
 fsm.add_edge('LR_0', 'LR_1', {'label': 'SS(S)'})

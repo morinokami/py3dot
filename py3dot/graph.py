@@ -79,6 +79,8 @@ class Graph:
             head: A head node's name.
             attr:
         '''
+        self.add_node(tail)
+        self.add_node(head)
         edge = Edge(tail, head, attr)
         if edge not in self.edges:
             self.edges.append(edge)
@@ -117,7 +119,7 @@ class Graph:
         '''Set multiple attributes of nodes at a time.'''
         set_attr_helper(attr, self.node_attr, 'node')
 
-    def set_attr_for_each_node(self, nodes, attr):
+    def set_attr_for_nodes(self, nodes, attr):
         for node_name in nodes:
             node = self.get_node(node_name)
             node.set_attr(attr)
@@ -160,7 +162,7 @@ class Graph:
 
     def save_fig(self, path):
         dot = self.create_dot().encode()
-        p = subprocess.Popen(['dot', '-T', 'png', '-o', path], stdin=subprocess.PIPE)
+        p = subprocess.Popen(['dot', '-T', 'svg', '-o', path], stdin=subprocess.PIPE)
         p.stdin.write(dot)
         output = p.communicate()[0]
         p.stdin.close()
@@ -246,33 +248,12 @@ def set_attr_helper(attr, target, kind):
 
 
 if __name__ == '__main__':
-    fsm = Graph({'rankdir': 'LR', 'size': '8, 5'})
-    fsm.set_node_attr({'shape': 'circle'})
-    fsm.add_nodes_from(['LR_' + str(i) for i in range(9)])
-    print(fsm.get_node('LR_2'))
-    fsm.set_attr_for_each_node(['LR_0', 'LR_3', 'LR_4', 'LR_8'], {'shape': 'doublecircle'})
-    fsm.add_edge('LR_0', 'LR_2', {'label': 'SS(B)'})
-    fsm.add_edge('LR_0', 'LR_1', {'label': 'SS(S)'})
-    fsm.add_edge('LR_1', 'LR_3', {'label': 'S($end)'})
-    fsm.add_edge('LR_2', 'LR_6', {'label': 'SS(b)'})
-    fsm.add_edge('LR_2', 'LR_5', {'label': 'SS(a)'})
-    fsm.add_edge('LR_2', 'LR_4', {'label': 'S(A)'})
-    fsm.add_edge('LR_5', 'LR_7', {'label': 'S(b)'})
-    fsm.add_edge('LR_5', 'LR_5', {'label': 'S(a)'})
-    fsm.add_edge('LR_6', 'LR_6', {'label': 'S(b)'})
-    fsm.add_edge('LR_6', 'LR_5', {'label': 'S(a)'})
-    fsm.add_edge('LR_7', 'LR_8', {'label': 'S(b)'})
-    fsm.add_edge('LR_7', 'LR_5', {'label': 'S(a)'})
-    fsm.add_edge('LR_8', 'LR_6', {'label': 'S(b)'})
-    fsm.add_edge('LR_8', 'LR_5', {'label': 'S(a)'})
-    print(fsm.create_dot())
-    fsm.save_fig('fsm.png')
 
-    # graph = Graph({'size': '3.6, 6.9', 'label': 'Graph', 'labelloc': 't', 'fontsize': 10})
-    # graph.add_nodes_from(['A', 'B', 'C', 'D'])
-    # graph.add_edge('A', 'B', {'arrowhead':'dot'})
-    # graph.add_edge('A', 'C', {'arrowtail': 'odot'})
-    # graph.add_edge('A', 'D', {'headlabel': 'end', 'taillabel': 'start', 'labeldistance': 3, 'labelangle': 30})
-    # graph.add_edge('B', 'D')
-    # print(graph.create_dot())
-    # graph.save_fig('sample2.png')
+    graph = Graph({'size': '3.6, 6.9', 'label': 'Graph', 'labelloc': 't', 'fontsize': 10})
+    graph.add_nodes_from(['A', 'B', 'C', 'D'])
+    graph.add_edge('A', 'B', {'arrowhead':'dot'})
+    graph.add_edge('A', 'C', {'arrowtail': 'odot'})
+    graph.add_edge('A', 'D', {'headlabel': 'end', 'taillabel': 'start', 'labeldistance': 3, 'labelangle': 30})
+    graph.add_edge('B', 'D')
+    print(graph.create_dot())
+    graph.save_fig('sample2.svg')
