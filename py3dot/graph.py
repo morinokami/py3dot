@@ -4,28 +4,28 @@
 """Python 3 interface for Graphviz"""
 
 import subprocess
-
 from attributes import ATTR, GRAPH_ATTR, NODE_ATTR, EDGE_ATTR
+
+__all__ = ['Graph']
+
+DOT_TEMPLATE = '''digraph {{
+graph [{graph_attr}];
+node [{node_attr}];
+edge [{edge_attr}];
+
+{attr_for_each_node}
+
+{rel}
+}}
+'''
 
 
 class Graph:
 
-    def __init__(self, *, size=None, label=None, labelloc=None,
-                 fontname=None, fontsize=None, fontcolor=None, bgcolor=None,
-                 rotate=None, rankdir=None):
+    def __init__(self, attr={}):
         self.nodes = []
         self.edges = []
-        self.attr = {
-            'size': size,
-            'label': label,
-            'labelloc': labelloc,
-            'fontname': fontname,
-            'fontsize': fontsize,
-            'fontcolor': fontcolor,
-            'bgcolor': bgcolor,
-            'rotate': rotate,
-            'rankdir': rankdir
-        }
+        self.attr = set_attr_helper(attr, {}, 'graph')
         self.node_attr = {}
         self.edge_attr = {}
 
@@ -50,7 +50,7 @@ class Graph:
     def print_edges(self):
         '''Print edges.'''
 
-    def add_node(self, node_name, shape=None):
+    def add_node(self, node_name, attr={}):
         '''Add a node to the graph.
 
         Args:
@@ -58,7 +58,7 @@ class Graph:
             attr:
         '''
 
-        node = Node(node_name, shape=shape)
+        node = Node(node_name, attr)
         if node not in self.nodes:
             self.nodes.append(node)
 
@@ -71,11 +71,7 @@ class Graph:
         for node_name in nodes_list:
             self.add_node(node_name)
 
-    def add_edge(self, tail, head, *, label=None, fontcolor=None,
-                 labelfloat=None, headlabel=None, taillabel=None,
-                 labeldistance=None, labelangle=None, color=None,
-                 style=None, dir=None, arrowhead=None, arrowtail=None,
-                 arrowsize=None):
+    def add_edge(self, tail, head, attr={}):
         '''Add an edge to the graph.
 
         Args:
@@ -83,13 +79,11 @@ class Graph:
             head: A head node's name.
             attr:
         '''
-        edge = Edge(tail, head, label=label, fontcolor=fontcolor,
-                    labelfloat=labelfloat, headlabel=headlabel, taillabel=taillabel,
-                    labeldistance=labeldistance, labelangle=labelangle, color=color,
-                    style=style, dir=dir, arrowhead=arrowhead, arrowtail=arrowtail,
-                    arrowsize=arrowsize)
+        edge = Edge(tail, head, attr)
         if edge not in self.edges:
             self.edges.append(edge)
+        else:
+            pass  # raise
 
     def add_edges_from(self, edges_list):
         '''Add edges to the graph.
@@ -102,45 +96,38 @@ class Graph:
             self.add_edge(tail, head)
 
     def get_node(self, node_name):
-        '''Returns a node specified by the argument'''
+        '''Returns a node specified by the argument.'''
         for node in self.nodes:
             if str(node) == node_name:
                 return node
-            else:
-                raise KeyError
+        raise KeyError
 
     def get_edge(self, tail, head):
-        '''Returns an edge specified by the argument'''
+        '''Returns an edge specified by the argument.'''
         for edge in self.edges:
             if edge.get_tail() == tail and edge.get_head() == head:
                 return edge
-            else:
-                raise KeyError
+        raise KeyError
 
-    def set_attr(self, *, size=None, label=None):
+    def set_attr(self, attr):
         '''Set multiple attributes at a time.'''
-        self.attr['size'] = size
-        self.attr['label'] = label
+        set_attr_helper(attr, self.attr, 'graph')
 
-    def set_node_attr(self, shape):
+    def set_node_attr(self, attr):
         '''Set multiple attributes of nodes at a time.'''
-        self.node_attr['shape'] = shape
+        set_attr_helper(attr, self.node_attr, 'node')
 
-    def set_edge_attr(self, label):
+    def set_attr_for_each_node(self, nodes, attr):
+        for node_name in nodes:
+            node = self.get_node(node_name)
+            node.set_attr(attr)
+
+    def set_edge_attr(self, attr):
         '''Set multiple attributes of edges at a time.'''
-        self.edge_attr['label'] = label
+        set_attr_helper(attr, self.edge_attr, 'edge')
 
     def create_dot(self):
         '''Create a dot file.'''
-        template = '''digraph {{
-graph [{graph_attr}];
-node [{node_attr}];
-edge [{edge_attr}];
-{attr_for_each_node}
-
-{rel}
-}}
-'''
 
         def get_attr_str(attr, target):
             attr_str = []
@@ -156,16 +143,20 @@ edge [{edge_attr}];
         graph_attr = get_attr_str(self.attr, GRAPH_ATTR)
         node_attr = get_attr_str(self.node_attr, NODE_ATTR)
         edge_attr = get_attr_str(self.edge_attr, EDGE_ATTR)
+        attr_for_each_node = ''
+        for node in self.nodes:
+            attr_str = get_attr_str(node.get_attr(), NODE_ATTR)
+            attr_for_each_node += '"' + str(node) + '" [' + attr_str + '];\n'
         rel = ''
         for edge in self.edges:
             tail = edge.get_tail()
             head = edge.get_head()
             attr_str = get_attr_str(edge.get_attr(), EDGE_ATTR)
-            rel += tail + ' -> ' + head + '[' + attr_str + '];\n'
+            rel += '"' + tail + '" -> "' + head + '" [' + attr_str + '];\n'
 
-        return template.format(graph_attr=graph_attr, node_attr=node_attr,
-                               edge_attr=edge_attr, attr_for_each_node='',
-                               rel=rel)
+        return DOT_TEMPLATE.format(graph_attr=graph_attr, node_attr=node_attr,
+                               edge_attr=edge_attr, attr_for_each_node=attr_for_each_node[:-1],
+                               rel=rel[:-1])
 
     def save_fig(self, path):
         dot = self.create_dot().encode()
@@ -177,18 +168,9 @@ edge [{edge_attr}];
 
 class Node:
 
-    def __init__(self, node_name, *, shape=None):
+    def __init__(self, node_name, attr={}):
         self.name = node_name
-        self.attr = {'shape': shape}
-        '''
-        self.shape
-        self.size
-        self.style
-        self.peripheries
-        self.color
-        self.fillcolor
-        self.label
-        self.font*'''
+        self.attr = set_attr_helper(attr, {}, 'node')
 
     def __str__(self):
         return self.name
@@ -202,9 +184,9 @@ class Node:
     def __getitem__(self, key):
         return self.attr[key]
 
-    def set_attr(self, *, shape=None):
+    def set_attr(self, attr):
         '''Set multiple attributes at a time.'''
-        self.attr['shape'] = shape
+        set_attr_helper(attr, self.attr, 'node')
 
     def get_attr(self):
         '''Return all'''
@@ -213,29 +195,11 @@ class Node:
 
 class Edge:
 
-    def __init__(self, tail, head, *, label=None, fontcolor=None,
-                 labelfloat=None, headlabel=None, taillabel=None,
-                 labeldistance=None, labelangle=None, color=None,
-                 style=None, dir=None, arrowhead=None, arrowtail=None,
-                 arrowsize=None):
-
+    def __init__(self, tail, head, attr={}):
         self.tail = tail
         self.head = head
-        self.attr = {
-            'label': label,
-            'fontcolor': fontcolor,
-            'labelfloat': labelfloat,
-            'headlabel': headlabel,
-            'taillabel': taillabel,
-            'labeldistance': labeldistance,
-            'labelangle': labelangle,
-            'color': color,
-            'style': style,
-            'dir': dir,
-            'arrowhead': arrowhead,
-            'arrowtail': arrowtail,
-            'arrowsize': arrowsize
-        }
+        self.attr = set_attr_helper(attr, {}, 'edge')
+        self.attr = attr
 
     def __str__(self):
         return self.tail + ' -> ' + self.head
@@ -249,9 +213,9 @@ class Edge:
     def __getitem__(self, key):
         return self.attr[key]
 
-    def set_attr(self, *, label=None):
+    def set_attr(self, attr):
         '''Set multiple attributes at a time.'''
-        self.attr['label'] = label
+        set_attr_helper(attr, self.attr, 'edge')
 
     def get_attr(self):
         return self.attr
@@ -263,11 +227,52 @@ class Edge:
         return self.head
 
 
+def set_attr_helper(attr, target, kind):
+    if kind == 'graph':
+        ref = GRAPH_ATTR
+    elif kind == 'node':
+        ref = NODE_ATTR
+    elif kind == 'edge':
+        ref = EDGE_ATTR
+    else:
+        raise  # raise
+    for attr_name in attr:
+        if attr_name in ref:
+            target[attr_name] = attr[attr_name]
+        else:
+            pass  # raise
+
+    return target
+
+
 if __name__ == '__main__':
-    graph = Graph(size='3.6, 6.9', label='Graph', labelloc='t', fontsize=10)
-    graph.add_nodes_from(['A', 'B', 'C', 'D'])
-    graph.add_edge('A', 'B', arrowhead='dot')
-    graph.add_edge('A', 'C', arrowtail='odot')
-    graph.add_edge('A', 'D', headlabel='end', taillabel='start', labeldistance=3, labelangle=30)
-    graph.add_edge('B', 'D')
-    graph.save_fig('sample2.png')
+    fsm = Graph({'rankdir': 'LR', 'size': '8, 5'})
+    fsm.set_node_attr({'shape': 'circle'})
+    fsm.add_nodes_from(['LR_' + str(i) for i in range(9)])
+    print(fsm.get_node('LR_2'))
+    fsm.set_attr_for_each_node(['LR_0', 'LR_3', 'LR_4', 'LR_8'], {'shape': 'doublecircle'})
+    fsm.add_edge('LR_0', 'LR_2', {'label': 'SS(B)'})
+    fsm.add_edge('LR_0', 'LR_1', {'label': 'SS(S)'})
+    fsm.add_edge('LR_1', 'LR_3', {'label': 'S($end)'})
+    fsm.add_edge('LR_2', 'LR_6', {'label': 'SS(b)'})
+    fsm.add_edge('LR_2', 'LR_5', {'label': 'SS(a)'})
+    fsm.add_edge('LR_2', 'LR_4', {'label': 'S(A)'})
+    fsm.add_edge('LR_5', 'LR_7', {'label': 'S(b)'})
+    fsm.add_edge('LR_5', 'LR_5', {'label': 'S(a)'})
+    fsm.add_edge('LR_6', 'LR_6', {'label': 'S(b)'})
+    fsm.add_edge('LR_6', 'LR_5', {'label': 'S(a)'})
+    fsm.add_edge('LR_7', 'LR_8', {'label': 'S(b)'})
+    fsm.add_edge('LR_7', 'LR_5', {'label': 'S(a)'})
+    fsm.add_edge('LR_8', 'LR_6', {'label': 'S(b)'})
+    fsm.add_edge('LR_8', 'LR_5', {'label': 'S(a)'})
+    print(fsm.create_dot())
+    fsm.save_fig('fsm.png')
+
+    # graph = Graph({'size': '3.6, 6.9', 'label': 'Graph', 'labelloc': 't', 'fontsize': 10})
+    # graph.add_nodes_from(['A', 'B', 'C', 'D'])
+    # graph.add_edge('A', 'B', {'arrowhead':'dot'})
+    # graph.add_edge('A', 'C', {'arrowtail': 'odot'})
+    # graph.add_edge('A', 'D', {'headlabel': 'end', 'taillabel': 'start', 'labeldistance': 3, 'labelangle': 30})
+    # graph.add_edge('B', 'D')
+    # print(graph.create_dot())
+    # graph.save_fig('sample2.png')
