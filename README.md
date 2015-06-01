@@ -1,7 +1,7 @@
 py3dot
 ======
 
-py3dot is a Python 3 interface for graphviz.
+py3dot is a Python 3 interface for Graphviz.
 
 
 Usage
