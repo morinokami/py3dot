@@ -118,6 +118,8 @@ edge [];
 "A" -> "C" [arrowtail="odot"];
 "A" -> "D" [headlabel="end",labelangle="30",labeldistance="3",taillabel="start"];
 "B" -> "D" [];
+
+
 }'''
         self.assertEqual(expected, graph.create_dot())
 

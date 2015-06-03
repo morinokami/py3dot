@@ -61,6 +61,9 @@ class Graph:
         Args:
             node_name: A node's name.
             attr: A dictionary of attributes for the node.
+
+        Returns:
+            The node object just created.
         '''
 
         node = Node(node_name, attr)
@@ -68,6 +71,7 @@ class Graph:
             self.nodes.append(node)
         else:
             pass  # raise already exists error
+        return node
 
     def add_nodes_from(self, nodes_list, same_rank=False):
         '''Add nodes to the graph.
@@ -95,8 +99,8 @@ class Graph:
             head: A head node's name.
             attr: A dictionary of attributes for the edge.
         '''
-        self.add_node(tail)
-        self.add_node(head)
+        tail = self.add_node(tail)
+        head = self.add_node(head)
         edge = Edge(tail, head, attr)
         if edge not in self.edges:
             self.edges.append(edge)
@@ -123,7 +127,7 @@ class Graph:
     def get_edge(self, tail, head):
         '''Return an edge specified by the argument.'''
         for edge in self.edges:
-            if edge.get_tail() == tail and edge.get_head() == head:
+            if str(edge.get_tail()) == tail and str(edge.get_head()) == head:
                 return edge
         raise KeyError
 
@@ -180,8 +184,8 @@ class Graph:
             attr_for_each_node += '"' + str(node) + '" [' + attr_str + '];\n'
         rel = ''
         for edge in self.edges:
-            tail = edge.get_tail()
-            head = edge.get_head()
+            tail = str(edge.get_tail())
+            head = str(edge.get_head())
             attr_str = get_attr_str(edge.get_attr(), EDGE_ATTR)
             rel += '"' + tail + '" -> "' + head + '" [' + attr_str + '];\n'
         rank = ''
@@ -212,6 +216,8 @@ class Node:
         return self.name
 
     def __eq__(self, other):
+        if not isinstance(other, Node):
+            return False
         return self.name == other.name
 
     def __setitem__(self, key, value):
@@ -237,9 +243,11 @@ class Edge:
         self.attr = set_attr_helper(attr, {}, 'edge')
 
     def __str__(self):
-        return self.tail + ' -> ' + self.head
+        return str(self.tail) + ' -> ' + str(self.head)
 
     def __eq__(self, other):
+        if not isinstance(other, Edge):
+            return False
         return self.tail == other.tail and self.head == other.head
 
     def __setitem__(self, key, value):
@@ -257,11 +265,11 @@ class Edge:
         return self.attr
 
     def get_tail(self):
-        '''Return the tail node of the edge as a string.'''
+        '''Return the tail node of the edge.'''
         return self.tail
 
     def get_head(self):
-        '''Return the head node of the edge as a string.'''
+        '''Return the head node of the edge.'''
         return self.head
 
 
@@ -285,13 +293,53 @@ def set_attr_helper(attr, target, kind):
 if __name__ == '__main__':
     g = Graph({'rankdir': 'BT'})
     g.set_node_attr({'shape': 'circle'})
-    g.add_edges_from([('c1', 'c1'), ('c2', 'c2'), ('v1', 'v4'), ('v4', 'v2'), ('v2', 'c1'), ('v3', 'c2'), ('v5', 'c2')])
-    c1 = g.get_node('c1')
-    c2 = g.get_node('c2')
+    g.add_edges_from([
+        ('1', '3'),
+        ('2', '3'),
+        ('4', '3'),
+        ('4', '5'),
+        ('6', '15'),
+        ('3', '15'),
+
+        ('7', '10'),
+        ('7', '16'),
+        ('7', '11'),
+        ('8', '10'),
+        ('9', '10'),
+        ('10', '16'),
+
+        ('11', '12'),
+        ('12', '13'),
+        ('13', '11'),
+        ('14', '11'),
+
+        ('15', '15'),
+        ('16', '16')
+    ])
+    g.get_edge('1', '3').set_attr({'label': '1'})
+    g.get_edge('2', '3').set_attr({'label': '1'})
+    g.get_edge('4', '3').set_attr({'label': '0.5'})
+    g.get_edge('4', '5').set_attr({'label': '0.5'})
+    g.get_edge('6', '15').set_attr({'label': '1'})
+    g.get_edge('3', '15').set_attr({'label': '1'})
+
+    g.get_edge('7', '10').set_attr({'label': '0.33'})
+    g.get_edge('7', '16').set_attr({'label': '0.33'})
+    g.get_edge('7', '11').set_attr({'label': '0.33'})
+    g.get_edge('8', '10').set_attr({'label': '1'})
+    g.get_edge('9', '10').set_attr({'label': '1'})
+    g.get_edge('10', '16').set_attr({'label': '1'})
+
+    g.get_edge('11', '12').set_attr({'label': '1'})
+    g.get_edge('12', '13').set_attr({'label': '1'})
+    g.get_edge('13', '11').set_attr({'label': '1'})
+    g.get_edge('14', '11').set_attr({'label': '1'})
+    c1 = g.get_node('15')
+    c2 = g.get_node('16')
     c1.set_attr({'shape': 'doublecircle'})
     c2.set_attr({'shape': 'doublecircle'})
-    g.rank_same(['c1', 'c2'])
-    g.rank_same(['a', 'c1'])
+    g.rank_same(['15', '16'])
+    g.rank_same(['13', '12'])
     g.save_fig('test.png')
 
     '''
