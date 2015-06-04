@@ -197,9 +197,19 @@ class Graph:
                                    attr_for_each_node=attr_for_each_node[:-1],
                                    rel=rel[:-1], rank=rank[:-1])
 
-    def save_fig(self, path):
+    def save_fig(self, format, path):
+        '''Create an image file of the graph.
+
+        Args:
+            format: A string containing an output format. Valid values are
+                'ps', 'svg', 'svgz', 'fig', 'png', 'gif', 'imap', and 'cmapx'.
+            path: A path for the new image file.
+        '''
+        valid = ['ps', 'svg', 'svgz', 'fig', 'png', 'gif', 'imap', 'cmapx']
+        if format not in valid:
+            raise ValueError
         dot = self.create_dot().encode()
-        p = subprocess.Popen(['dot', '-T', 'png', '-o', path],
+        p = subprocess.Popen(['dot', '-T', format, '-o', path],
                              stdin=subprocess.PIPE)
         p.stdin.write(dot)
         output = p.communicate()[0]
@@ -340,7 +350,7 @@ if __name__ == '__main__':
     c2.set_attr({'shape': 'doublecircle'})
     g.rank_same(['15', '16'])
     g.rank_same(['13', '12'])
-    g.save_fig('test.png')
+    g.save_fig('svg', 'test.svg')
 
     '''
     graph = Graph({'size': '3.6, 6.9', 'label': 'Graph', 'labelloc': 't', 'fontsize': 10})
